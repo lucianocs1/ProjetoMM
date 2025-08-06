@@ -1,20 +1,25 @@
 import { useState, useMemo } from 'react'
-import { Container, Typography, Grid, Box, Chip } from '@mui/material'
+import { Container, Typography, Grid, Box, Chip, CircularProgress, Alert } from '@mui/material'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import ProductFilters from '../../components/ProductFilters/ProductFilters'
-import { bolsasData } from '../../data/products'
+import { useProducts } from '../../hooks/useProducts'
 
 const Bolsas = () => {
+  const { products, loading, error } = useProducts('bolsas')  // Passa categoria como parâmetro
+  
   const [filters, setFilters] = useState({
     search: '',
-    priceRange: [0, 300],
+    priceRange: [0, 2000], // Aumentado para incluir todos os produtos
     sizes: [],
     sortBy: 'name',
     isNew: false,
   })
 
+  // Padronizar lógica igual a Roupas.jsx
+  // Removido: já filtrado acima
+
   const filteredProducts = useMemo(() => {
-    let filtered = [...bolsasData]
+    let filtered = [...products]  // Usar products já filtrados por categoria
 
     // Filtro de busca
     if (filters.search) {
@@ -26,14 +31,16 @@ const Bolsas = () => {
 
     // Filtro de preço
     filtered = filtered.filter(product => {
-      const price = parseFloat(product.price.replace(',', '.'))
+      const price = parseFloat(product.price?.toString().replace(',', '.') || product.actualPrice || 0)
       return price >= filters.priceRange[0] && price <= filters.priceRange[1]
     })
 
-    // Filtro de tamanhos
+    // Filtro de tamanhos: só filtra se houver tamanhos selecionados
     if (filters.sizes.length > 0) {
       filtered = filtered.filter(product =>
-        product.sizes && product.sizes.some(size => filters.sizes.includes(size))
+        Array.isArray(product.sizes)
+          ? product.sizes.some(size => filters.sizes.includes(size))
+          : false
       )
     }
 
@@ -46,9 +53,13 @@ const Bolsas = () => {
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'price_asc':
-          return parseFloat(a.price.replace(',', '.')) - parseFloat(b.price.replace(',', '.'))
+          const priceA = parseFloat(a.price?.toString().replace(',', '.') || a.actualPrice || 0)
+          const priceB = parseFloat(b.price?.toString().replace(',', '.') || b.actualPrice || 0)
+          return priceA - priceB
         case 'price_desc':
-          return parseFloat(b.price.replace(',', '.')) - parseFloat(a.price.replace(',', '.'))
+          const priceDescA = parseFloat(a.price?.toString().replace(',', '.') || a.actualPrice || 0)
+          const priceDescB = parseFloat(b.price?.toString().replace(',', '.') || b.actualPrice || 0)
+          return priceDescB - priceDescA
         case 'newest':
           return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0)
         default:
@@ -57,7 +68,7 @@ const Bolsas = () => {
     })
 
     return filtered
-  }, [filters])
+  }, [products, filters])
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -73,8 +84,9 @@ const Bolsas = () => {
 
       {/* Filtros */}
       <ProductFilters 
+        filters={filters}
         onFiltersChange={setFilters} 
-        products={bolsasData}
+        availableSizes={['Único']}
       />
 
       {/* Resultados */}
@@ -87,7 +99,15 @@ const Bolsas = () => {
       </Box>
 
       {/* Products Grid */}
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          Erro ao carregar produtos: {error}
+        </Alert>
+      ) : filteredProducts.length > 0 ? (
         <Grid container spacing={4}>
           {filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>

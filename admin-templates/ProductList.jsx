@@ -14,9 +14,15 @@ import {
   Avatar,
   IconButton
 } from '@mui/material'
-import { Edit, Delete, Image } from '@mui/icons-material'
+import { Edit, Delete, Image, Star } from '@mui/icons-material'
 
 const ProductList = ({ products, onEdit, onDelete }) => {
+  // Debug: verificar produtos em destaque
+  const featuredProducts = products.filter(p => p.isFeatured)
+  if (featuredProducts.length > 0) {
+    console.log('⭐ Produtos em destaque encontrados no ProductList:', featuredProducts.map(p => ({ nome: p.nome, isFeatured: p.isFeatured })))
+  }
+
   if (products.length === 0) {
     return (
       <Paper sx={{ p: 4, textAlign: 'center' }}>
@@ -51,8 +57,8 @@ const ProductList = ({ products, onEdit, onDelete }) => {
             <TableCell>Nome</TableCell>
             <TableCell>Categoria</TableCell>
             <TableCell>Preço</TableCell>
-            <TableCell>Tamanhos</TableCell>
-            <TableCell>Tags</TableCell>
+            <TableCell align="center">Tamanhos</TableCell>
+            <TableCell align="center">Status</TableCell>
             <TableCell>Promoções</TableCell>
             <TableCell>Criado em</TableCell>
             <TableCell align="center">Ações</TableCell>
@@ -78,19 +84,19 @@ const ProductList = ({ products, onEdit, onDelete }) => {
               
               <TableCell>
                 <Typography variant="subtitle2">
-                  {product.nome}
+                  {product.nome || 'Produto sem nome'}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {product.descricao.length > 50 
+                  {product.descricao && product.descricao.length > 50 
                     ? `${product.descricao.substring(0, 50)}...`
-                    : product.descricao
+                    : product.descricao || 'Sem descrição'
                   }
                 </Typography>
               </TableCell>
               
               <TableCell>
                 <Chip 
-                  label={product.categoria} 
+                  label={product.categoria || 'Sem categoria'} 
                   size="small" 
                   color="primary" 
                   variant="outlined"
@@ -99,12 +105,12 @@ const ProductList = ({ products, onEdit, onDelete }) => {
               
               <TableCell>
                 <Typography variant="h6" color="primary">
-                  {formatPrice(product.preco)}
+                  {formatPrice(product.preco || 0)}
                 </Typography>
               </TableCell>
               
-              <TableCell>
-                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+              <TableCell align="center">
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
                   {product.tamanhos?.slice(0, 3).map(tamanho => (
                     <Chip 
                       key={tamanho}
@@ -124,23 +130,30 @@ const ProductList = ({ products, onEdit, onDelete }) => {
                 </Box>
               </TableCell>
               
-              <TableCell>
-                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                  {product.tags?.slice(0, 2).map(tag => (
+              <TableCell align="center">
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: 0.5, 
+                  justifyContent: 'center' 
+                }}>
+                  {product.isFeatured && (
                     <Chip 
-                      key={tag}
-                      label={tag} 
+                      icon={<Star />}
+                      label="Destaque" 
                       size="small" 
-                      color="secondary"
-                      variant="outlined"
+                      color="warning"
+                      variant="filled"
+                      sx={{ fontWeight: 'bold' }}
                     />
-                  ))}
-                  {product.tags?.length > 2 && (
+                  )}
+                  {product.isNew && (
                     <Chip 
-                      label={`+${product.tags.length - 2}`}
+                      label="Novo" 
                       size="small" 
+                      color="success"
                       variant="outlined"
-                      color="info"
                     />
                   )}
                 </Box>
@@ -162,7 +175,7 @@ const ProductList = ({ products, onEdit, onDelete }) => {
               </TableCell>
               
               <TableCell>
-                {formatDate(product.createdAt)}
+                {formatDate(product.createdAt || new Date().toISOString())}
               </TableCell>
               
               <TableCell align="center">

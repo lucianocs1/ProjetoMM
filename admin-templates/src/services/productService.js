@@ -1,6 +1,13 @@
 import { apiRequest, API_CONFIG } from './apiConfig.js';
+import { authService } from './authService.js';
 
 export const productService = {
+  // Obter headers com autenticação
+  getAuthHeaders() {
+    const token = authService.getToken();
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  },
+
   // Listar produtos com filtros e paginação
   async getProducts(params = {}) {
     try {
@@ -14,11 +21,11 @@ export const productService = {
       const endpoint = `/products?${queryParams.toString()}`;
       const response = await apiRequest(endpoint);
 
-      return response.success ? response.data : response;
+      // A API retorna diretamente um array, não um objeto com success/data
+      return Array.isArray(response) ? response : (response.success ? response.data : response);
     } catch (error) {
-      // Fallback para localStorage durante desenvolvimento
-      console.warn('API não disponível, usando localStorage:', error);
-      return this.getProductsFromLocalStorage(params);
+      console.error('Erro ao carregar produtos:', error);
+      throw error;
     }
   },
 
@@ -28,43 +35,46 @@ export const productService = {
       const response = await apiRequest(`/products/${id}`);
       return response.success ? response.data : response;
     } catch (error) {
-      console.warn('API não disponível, usando localStorage:', error);
-      const products = this.getProductsFromLocalStorage();
-      return products.find(p => p.id.toString() === id.toString());
+      console.error('Erro ao carregar produto:', error);
+      throw error;
     }
   },
 
   // Criar produto
   async createProduct(productData) {
     try {
-      const formData = this.createFormData(productData);
-      
       const response = await apiRequest('/products', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthHeaders()
+        },
+        body: productData
       });
 
       return response.success ? response.data : response;
     } catch (error) {
-      console.warn('API não disponível, usando localStorage:', error);
-      return this.saveProductToLocalStorage(productData);
+      console.error('Erro ao criar produto:', error);
+      throw error;
     }
   },
 
   // Atualizar produto
   async updateProduct(id, productData) {
     try {
-      const formData = this.createFormData(productData);
-      
       const response = await apiRequest(`/products/${id}`, {
         method: 'PUT',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthHeaders()
+        },
+        body: productData
       });
 
       return response.success ? response.data : response;
     } catch (error) {
-      console.warn('API não disponível, usando localStorage:', error);
-      return this.updateProductInLocalStorage(id, productData);
+      console.error('Erro ao atualizar produto:', error);
+      throw error;
     }
   },
 
@@ -72,13 +82,14 @@ export const productService = {
   async deleteProduct(id) {
     try {
       const response = await apiRequest(`/products/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
       });
 
       return response.success;
     } catch (error) {
-      console.warn('API não disponível, usando localStorage:', error);
-      return this.deleteProductFromLocalStorage(id);
+      console.error('Erro ao deletar produto:', error);
+      throw error;
     }
   },
 
@@ -95,6 +106,21 @@ export const productService = {
         categories: [...new Set(products.map(p => p.categoria))].length,
         totalValue: products.reduce((sum, p) => sum + (p.preco || 0), 0)
       };
+    }
+  },
+
+  // Buscar categorias do banco de dados
+  async getCategories() {
+    try {
+      const response = await apiRequest('/categories');
+      if (response && Array.isArray(response)) {
+        return response.map(cat => cat.name || cat.Name);
+      }
+      return response;
+    } catch (error) {
+      console.warn('API de categorias não disponível, usando fallback:', error);
+      // Fallback para categorias padrão
+      return ['Blusas', 'Bolsas', 'Roupas', 'Sapatos'];
     }
   },
 

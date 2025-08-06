@@ -1,6 +1,6 @@
 // Configurações da API
 export const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5006/api',
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000,
   maxFileSize: parseInt(import.meta.env.VITE_MAX_FILE_SIZE) || 5242880, // 5MB
   allowedFileTypes: import.meta.env.VITE_ALLOWED_FILE_TYPES?.split(',') || [
@@ -33,8 +33,18 @@ export const handleApiResponse = async (response) => {
     throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
   }
 
-  const data = await response.json();
-  return data;
+  // Verificar se a resposta tem conteúdo (status 204 No Content não tem corpo)
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return { success: true }; // Retornar objeto vazio para sucesso sem conteúdo
+  }
+
+  try {
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    // Se não conseguir fazer parse do JSON, assumir sucesso sem dados
+    return { success: true };
+  }
 };
 
 // Função auxiliar para fazer requests

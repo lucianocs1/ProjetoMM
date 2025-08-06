@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Admin Simples</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        function TestAdmin() {
+            const [products, setProducts] = useState([]);
+            const [loading, setLoading] = useState(true);
+            
+            useEffect(() => {
+                async function loadProducts() {
+                    try {
+                        console.log('🔍 Carregando produtos...');
+                        const response = await fetch('http://localhost:5006/api/products');
+                        const data = await response.json();
+                        
+                        console.log('📦 Dados brutos da API:', data);
+                        console.log('📊 Tipo:', typeof data);
+                        console.log('🔢 É array:', Array.isArray(data));
+                        
+                        if (Array.isArray(data)) {
+                            data.forEach((product, index) => {
+                                console.log(`Produto ${index + 1}: ${product.name}`, {
+                                    isFeatured: product.isFeatured,
+                                    tipo: typeof product.isFeatured,
+                                    boolean: Boolean(product.isFeatured)
+                                });
+                            });
+                            
+                            setProducts(data);
+                        }
+                        
+                        setLoading(false);
+                    } catch (error) {
+                        console.error('❌ Erro:', error);
+                        setLoading(false);
+                    }
+                }
+                
+                loadProducts();
+            }, []);
+            
+            if (loading) return <div>Carregando...</div>;
+            
+            return (
+                <div>
+                    <h1>Teste Admin - Debug isFeatured</h1>
+                    <p>Total de produtos: {products.length}</p>
+                    
+                    <table border="1" style={{borderCollapse: 'collapse', width: '100%'}}>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>isFeatured (Original)</th>
+                                <th>isFeatured (Boolean)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {products.map(product => (
+                                <tr key={product.id}>
+                                    <td>{product.id}</td>
+                                    <td>{product.name}</td>
+                                    <td>{String(product.isFeatured)} ({typeof product.isFeatured})</td>
+                                    <td>{String(Boolean(product.isFeatured))}</td>
+                                    <td>
+                                        {Boolean(product.isFeatured) ? '⭐ DESTAQUE' : '⚪ Normal'}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<TestAdmin />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -43,7 +43,7 @@ export const roupasData = [
 
 export const bolsasData = [
   {
-    id: 1,
+    id: 101,
     name: 'Bolsa Tote Grande',
     description: 'Bolsa tote espaçosa em couro sintético, ideal para o dia a dia',
     price: '159,90',
@@ -53,7 +53,7 @@ export const bolsasData = [
     isNew: true
   },
   {
-    id: 2,
+    id: 102,
     name: 'Bolsa Tiracolo Pequena',
     description: 'Bolsa tiracolo compacta e elegante para ocasiões especiais',
     price: '89,90',
@@ -62,7 +62,7 @@ export const bolsasData = [
     isNew: false
   },
   {
-    id: 3,
+    id: 103,
     name: 'Mochila Fashion',
     description: 'Mochila moderna em couro ecológico, prática e estilosa',
     price: '129,90',
@@ -71,7 +71,7 @@ export const bolsasData = [
     isNew: true
   },
   {
-    id: 4,
+    id: 104,
     name: 'Clutch Festa',
     description: 'Clutch elegante com brilho para eventos noturnos',
     price: '79,90',
@@ -83,7 +83,7 @@ export const bolsasData = [
 
 export const sapatosData = [
   {
-    id: 1,
+    id: 201,
     name: 'Scarpin Clássico',
     description: 'Scarpin de salto médio, ideal para trabalho e eventos',
     price: '159,90',
@@ -93,7 +93,7 @@ export const sapatosData = [
     isNew: true
   },
   {
-    id: 2,
+    id: 202,
     name: 'Tênis Casual Branco',
     description: 'Tênis casual branco, conforto para o dia a dia',
     price: '119,90',
@@ -102,7 +102,7 @@ export const sapatosData = [
     isNew: false
   },
   {
-    id: 3,
+    id: 203,
     name: 'Sandália Rasteira',
     description: 'Sandália rasteira confortável para verão',
     price: '79,90',
@@ -111,7 +111,7 @@ export const sapatosData = [
     isNew: true
   },
   {
-    id: 4,
+    id: 204,
     name: 'Bota Ankle Boot',
     description: 'Ankle boot moderna para looks despojados',
     price: '189,90',

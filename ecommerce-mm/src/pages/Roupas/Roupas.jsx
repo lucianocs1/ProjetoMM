@@ -2,53 +2,41 @@ import { useState, useMemo } from 'react'
 import { Container, Typography, Grid, Box, Chip, CircularProgress, Alert } from '@mui/material'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import ProductFilters from '../../components/ProductFilters/ProductFilters'
-import { useProductsByCategory } from '../../hooks/useProducts'
+import { useMultiCategoryProducts } from '../../hooks/useMultiCategoryProducts'
 
 const Roupas = () => {
-  const { products: roupasData, loading, error } = useProductsByCategory('Roupas')
+  // Buscar produtos das categorias: Roupas, Blusas e Saias e Calças
+  const { products, loading, error } = useMultiCategoryProducts(['roupas', 'blusas', 'saia-calca'])
   
   const [filters, setFilters] = useState({
     search: '',
-    priceRange: [0, 300],
+    priceRange: [0, 2000],
     sizes: [],
     sortBy: 'name',
     isNew: false,
   })
 
-  // Loading state
-  if (loading) {
-    return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress size={60} />
-      </Container>
-    )
-  }
+  // Combinar e filtrar produtos
+  const allProducts = useMemo(() => {
+    return products
+  }, [products])
 
-  // Error state  
-  if (error) {
-    return (
-      <Container sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          Erro ao carregar produtos: {error}
-        </Alert>
-      </Container>
-    )
-  }
+  // Removido bloco condicional de hooks, tudo tratado no JSX abaixo
 
   const filteredProducts = useMemo(() => {
-    let filtered = [...roupasData]
+    let filtered = [...allProducts]
 
     // Filtro de busca
     if (filters.search) {
       filtered = filtered.filter(product =>
-        product.nome.toLowerCase().includes(filters.search.toLowerCase()) ||
-        product.descricao.toLowerCase().includes(filters.search.toLowerCase())
+        product.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        product.description.toLowerCase().includes(filters.search.toLowerCase())
       )
     }
 
     // Filtro de preço
     filtered = filtered.filter(product => {
-      const price = parseFloat(product.preco)
+      const price = parseFloat(product.price?.toString().replace(',', '.') || product.actualPrice || 0)
       return price >= filters.priceRange[0] && price <= filters.priceRange[1]
     })
 
@@ -68,9 +56,13 @@ const Roupas = () => {
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'price_asc':
-          return parseFloat(a.price.replace(',', '.')) - parseFloat(b.price.replace(',', '.'))
+          const priceA = parseFloat(a.price?.toString().replace(',', '.') || a.actualPrice || 0)
+          const priceB = parseFloat(b.price?.toString().replace(',', '.') || b.actualPrice || 0)
+          return priceA - priceB
         case 'price_desc':
-          return parseFloat(b.price.replace(',', '.')) - parseFloat(a.price.replace(',', '.'))
+          const priceDescA = parseFloat(a.price?.toString().replace(',', '.') || a.actualPrice || 0)
+          const priceDescB = parseFloat(b.price?.toString().replace(',', '.') || b.actualPrice || 0)
+          return priceDescB - priceDescA
         case 'newest':
           return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0)
         default:
@@ -79,7 +71,7 @@ const Roupas = () => {
     })
 
     return filtered
-  }, [filters])
+  }, [allProducts, filters])
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -89,14 +81,15 @@ const Roupas = () => {
           Roupas
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-          Encontre a peça perfeita para cada ocasião
+          Roupas, Blusas, Saias e Calças - Encontre a peça perfeita para cada ocasião
         </Typography>
       </Box>
 
       {/* Filtros */}
       <ProductFilters 
+        filters={filters}
         onFiltersChange={setFilters} 
-        products={roupasData}
+        availableSizes={['PP', 'P', 'M', 'G', 'GG', 'XG', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44']}
       />
 
       {/* Resultados */}
@@ -109,7 +102,18 @@ const Roupas = () => {
       </Box>
 
       {/* Products Grid */}
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <CircularProgress />
+          <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+            Carregando produtos...
+          </Typography>
+        </Box>
+      ) : error ? (
+        <Box sx={{ py: 4 }}>
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      ) : filteredProducts.length > 0 ? (
         <Grid container spacing={4}>
           {filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>

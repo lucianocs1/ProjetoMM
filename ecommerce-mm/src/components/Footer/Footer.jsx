@@ -19,15 +19,15 @@ const Footer = () => {
       sx={{
         backgroundColor: 'primary.main',
         color: 'white',
-        py: 4,
+        py: 2,
         mt: 'auto',
       }}
     >
       <Container maxWidth="lg">
-        <Grid container spacing={4} alignItems="center" justifyContent="center">
+        <Grid container spacing={2} alignItems="center" justifyContent="center">
           <Grid item xs={12} md={8}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1 }}>
                 <Box component="span" sx={{ color: 'white' }}>
                   MENINA
                 </Box>
@@ -35,7 +35,7 @@ const Footer = () => {
                   MULHER
                 </Box>
               </Typography>
-              <Typography variant="body1" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+              <Typography variant="body2" sx={{ mb: 2, maxWidth: 500, mx: 'auto' }}>
                 Moda feminina com estilo e qualidade. Entre em contato conosco através das nossas redes sociais!
               </Typography>
             </Box>
@@ -47,13 +47,13 @@ const Footer = () => {
               justifyContent: 'center', 
               alignItems: 'center', 
               flexDirection: 'column',
-              gap: 2 
+              gap: 1.5 
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                 Fale Conosco
               </Typography>
               
-              <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
                 <IconButton
                   onClick={handleWhatsAppClick}
                   sx={{ 
@@ -63,11 +63,12 @@ const Footer = () => {
                       backgroundColor: 'rgba(255, 255, 255, 0.25)',
                       transform: 'scale(1.1)'
                     },
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    p: 1
                   }}
-                  size="large"
+                  size="medium"
                 >
-                  <WhatsApp fontSize="large" />
+                  <WhatsApp fontSize="medium" />
                 </IconButton>
                 
                 <IconButton
@@ -79,19 +80,20 @@ const Footer = () => {
                       backgroundColor: 'rgba(255, 255, 255, 0.25)',
                       transform: 'scale(1.1)'
                     },
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    p: 1
                   }}
-                  size="large"
+                  size="medium"
                 >
-                  <Instagram fontSize="large" />
+                  <Instagram fontSize="medium" />
                 </IconButton>
               </Box>
             </Box>
           </Grid>
         </Grid>
         
-        <Box sx={{ textAlign: 'center', mt: 4, pt: 3, borderTop: '1px solid rgba(255, 255, 255, 0.2)' }}>
-          <Typography variant="body2" sx={{ opacity: 0.8 }}>
+        <Box sx={{ textAlign: 'center', mt: 2, pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.2)' }}>
+          <Typography variant="caption" sx={{ opacity: 0.8 }}>
             © {new Date().getFullYear()} MENINA MULHER. Todos os direitos reservados.
           </Typography>
         </Box>

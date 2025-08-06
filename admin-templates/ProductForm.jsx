@@ -1,4 +1,3 @@
-import React, { useState } from 'react'
 import {
   Paper,
   TextField,
@@ -12,32 +11,74 @@ import {
   Select,
   MenuItem,
   Alert,
-  Divider
+  Divider,
+  CircularProgress,
+  LinearProgress
 } from '@mui/material'
-import { Save, Cancel, CloudUpload } from '@mui/icons-material'
+import { useState, useEffect } from 'react'
+import { Save, Cancel, CloudUpload, Delete } from '@mui/icons-material'
+import { API_CONFIG } from './src/services/apiConfig.js'
+import { productService } from './src/services/productService.js'
 
-const ProductForm = ({ product, onSave, onCancel }) => {
+function ProductForm({ produto, onSave, onCancel }) {
   const [formData, setFormData] = useState({
-    nome: product?.nome || '',
-    descricao: product?.descricao || '',
-    preco: product?.preco || '',
-    precoPromocional: product?.precoPromocional || '',
-    categoria: product?.categoria || '',
-    tamanhos: product?.tamanhos || [],
-    imagens: product?.imagens || [],
-    tags: product?.tags || [],
-    promocoes: product?.promocoes || ''
+    nome: produto?.nome || '',
+    descricao: produto?.descricao || '',
+    preco: produto?.preco || '',
+    precoPromocional: produto?.precoPromocional || '',
+    categoria: produto?.categoria || '',
+    tamanhos: produto?.tamanhos || [],
+    imagens: produto?.imagens || [],
+    tags: produto?.tags || [],
+    promocoes: produto?.promocoes || ''
   })
   
   const [newTag, setNewTag] = useState('')
   const [newTamanho, setNewTamanho] = useState('')
   const [errors, setErrors] = useState({})
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [categorias, setCategorias] = useState([])
+  const [categoriasLoading, setCategoriasLoading] = useState(true)
 
-  const categorias = ['Roupas', 'Bolsas', 'Sapatos', 'Acessórios', 'Eletrônicos', 'Casa & Decoração', 'Esportes', 'Beleza', 'Livros']
-  const tamanhosDisponiveis = ['PP', 'P', 'M', 'G', 'GG', 'XG', '36', '37', '38', '39', '40', '41', '42']
+  const tamanhosDisponiveis = ['PP', 'P', 'M', 'G', 'GG', 'XG', '34', '35', '36', '37', '38', '39', '40', '41', '42']
+
+  // Função para obter o token de autenticação
+  const getAuthToken = () => {
+    return localStorage.getItem('admin_token')
+  }
+
+  // Carregar categorias do banco de dados
+  useEffect(() => {
+    const loadCategorias = async () => {
+      try {
+        setCategoriasLoading(true)
+        const categoriasDb = await productService.getCategories()
+        setCategorias(categoriasDb)
+      } catch (error) {
+        console.error('Erro ao carregar categorias:', error)
+        // Em caso de erro, usar categorias padrão
+        setCategorias(['Blusas', 'Bolsas', 'Roupas', 'Sapatos'])
+      } finally {
+        setCategoriasLoading(false)
+      }
+    }
+
+    loadCategorias()
+  }, [])
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      
+      // Se a categoria mudou para "Bolsas", definir tamanho único automaticamente
+      if (field === 'categoria' && value === 'Bolsas') {
+        newData.tamanhos = ['Único']
+      }
+      
+      return newData
+    })
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: null }))
     }
@@ -65,19 +106,109 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     handleChange('tamanhos', formData.tamanhos.filter(t => t !== tamanhoToRemove))
   }
 
-  const handleImageUpload = (event) => {
+  // Upload de imagens para a API
+  const handleImageUpload = async (event) => {
     const files = Array.from(event.target.files)
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const newImage = e.target.result
-        handleChange('imagens', [...formData.imagens, newImage])
+    if (files.length === 0) return
+
+    setUploadingImages(true)
+    setUploadProgress(0)
+
+    try {
+      const token = getAuthToken()
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado. Faça login novamente.')
       }
-      reader.readAsDataURL(file)
-    })
+
+      const uploadedImages = []
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        
+        // Validação básica no frontend
+        if (file.size > 5 * 1024 * 1024) { // 5MB
+          alert(`Arquivo ${file.name} é muito grande. Máximo: 5MB`)
+          continue
+        }
+
+        if (!file.type.startsWith('image/')) {
+          alert(`Arquivo ${file.name} não é uma imagem válida`)
+          continue
+        }
+
+        const formDataUpload = new FormData()
+        formDataUpload.append('file', file)
+        formDataUpload.append('folder', 'products')
+
+        try {
+          const response = await fetch(`${API_CONFIG.baseURL}/images/upload`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formDataUpload
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.message || `Erro ao fazer upload de ${file.name}`)
+          }
+
+          const result = await response.json()
+          uploadedImages.push(result.imageUrl)
+          
+          // Atualizar progresso
+          setUploadProgress(((i + 1) / files.length) * 100)
+          
+        } catch (error) {
+          console.error(`Erro no upload de ${file.name}:`, error)
+          alert(`Erro ao fazer upload de ${file.name}: ${error.message}`)
+        }
+      }
+
+      // Adicionar imagens carregadas com sucesso ao estado
+      if (uploadedImages.length > 0) {
+        handleChange('imagens', [...formData.imagens, ...uploadedImages])
+      }
+
+    } catch (error) {
+      console.error('Erro no upload de imagens:', error)
+      alert(`Erro no upload: ${error.message}`)
+    } finally {
+      setUploadingImages(false)
+      setUploadProgress(0)
+      // Limpar o input
+      event.target.value = ''
+    }
   }
 
-  const handleRemoveImage = (index) => {
+  // Remover imagem e deletar do servidor se necessário
+  const handleRemoveImage = async (index) => {
+    const imageUrl = formData.imagens[index]
+    
+    try {
+      // Se a imagem é do servidor (começa com /uploads), tenta deletar
+      if (imageUrl.startsWith('/uploads') || imageUrl.includes('/uploads')) {
+        const token = getAuthToken()
+        if (token) {
+          // Extrair apenas o caminho da imagem, removendo qualquer URL base
+          const imagePath = imageUrl.replace(/https?:\/\/[^/]+/, '')
+          
+          await fetch(`${API_CONFIG.baseURL}/images/delete`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ imagePath })
+          })
+        }
+      }
+    } catch (error) {
+      console.warn('Erro ao deletar imagem do servidor:', error)
+    }
+    
+    // Remove da lista local
     const newImages = formData.imagens.filter((_, i) => i !== index)
     handleChange('imagens', newImages)
   }
@@ -117,7 +248,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
       {/* Cabeçalho */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
         <Typography variant="h4" gutterBottom color="primary">
-          {product ? '✏️ Editar Produto' : '➕ Adicionar Novo Produto'}
+          {produto ? '✏️ Editar Produto' : '➕ Adicionar Novo Produto'}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Preencha as informações do produto com cuidado
@@ -222,11 +353,13 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                   label="Categoria *"
                   required
                   displayEmpty
+                  disabled={categoriasLoading}
                   sx={{
                     borderRadius: 2,
                   }}
                 >
                   <MenuItem value="" disabled>
+                    {categoriasLoading ? 'Carregando categorias...' : 'Selecione uma categoria'}
                   </MenuItem>
                   {categorias.map(cat => (
                     <MenuItem key={cat} value={cat}>{cat}</MenuItem>
@@ -239,7 +372,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                 )}
                 {!errors.categoria && (
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, ml: 1.5 }}>
-                    Escolha a categoria do produto
+                    {categoriasLoading ? 'Carregando categorias do banco...' : 'Escolha a categoria do produto'}
                   </Typography>
                 )}
               </FormControl>
@@ -255,71 +388,82 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             📏 Detalhes do Produto
           </Typography>
 
-          {/* Tamanhos */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
-              👕 Tamanhos Disponíveis
-            </Typography>
-            
-            {formData.tamanhos.length > 0 && (
+          {/* Tamanhos - Apenas para categorias que não sejam Bolsas */}
+          {formData.categoria && formData.categoria !== 'Bolsas' && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+                👕 Tamanhos Disponíveis
+              </Typography>
+              
+              {formData.tamanhos.length > 0 && (
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 1, 
+                  mb: 3, 
+                  flexWrap: 'wrap',
+                  p: 2,
+                  backgroundColor: 'grey.50',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'grey.200'
+                }}>
+                  {formData.tamanhos.map(tamanho => (
+                    <Chip
+                      key={tamanho}
+                      label={tamanho}
+                      onDelete={() => handleRemoveTamanho(tamanho)}
+                      color="primary"
+                      variant="filled"
+                      sx={{ fontWeight: 'bold' }}
+                    />
+                  ))}
+                </Box>
+              )}
+
               <Box sx={{ 
                 display: 'flex', 
-                gap: 1, 
-                mb: 3, 
-                flexWrap: 'wrap',
+                gap: 2, 
+                alignItems: 'center',
                 p: 2,
-                backgroundColor: 'grey.50',
+                backgroundColor: 'primary.50',
                 borderRadius: 2,
-                border: '1px solid',
-                borderColor: 'grey.200'
+                border: '1px dashed',
+                borderColor: 'primary.main'
               }}>
-                {formData.tamanhos.map(tamanho => (
-                  <Chip
-                    key={tamanho}
-                    label={tamanho}
-                    onDelete={() => handleRemoveTamanho(tamanho)}
-                    color="primary"
-                    variant="filled"
-                    sx={{ fontWeight: 'bold' }}
-                  />
-                ))}
-              </Box>
-            )}
-
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 2, 
-              alignItems: 'center',
-              p: 2,
-              backgroundColor: 'primary.50',
-              borderRadius: 2,
-              border: '1px dashed',
-              borderColor: 'primary.main'
-            }}>
-              <FormControl size="medium" sx={{ minWidth: 150 }}>
-                <InputLabel>Selecionar Tamanho</InputLabel>
-                <Select
-                  value={newTamanho}
-                  onChange={(e) => setNewTamanho(e.target.value)}
-                  label="Selecionar Tamanho"
-                  sx={{ borderRadius: 2 }}
+                <FormControl size="medium" sx={{ minWidth: 150 }}>
+                  <InputLabel>Selecionar Tamanho</InputLabel>
+                  <Select
+                    value={newTamanho}
+                    onChange={(e) => setNewTamanho(e.target.value)}
+                    label="Selecionar Tamanho"
+                    sx={{ borderRadius: 2 }}
+                  >
+                    {tamanhosDisponiveis.filter(tam => !formData.tamanhos.includes(tam)).map(tam => (
+                      <MenuItem key={tam} value={tam}>{tam}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button 
+                  onClick={handleAddTamanho} 
+                  disabled={!newTamanho}
+                  variant="contained"
+                  size="large"
+                  sx={{ px: 3 }}
                 >
-                  {tamanhosDisponiveis.filter(tam => !formData.tamanhos.includes(tam)).map(tam => (
-                    <MenuItem key={tam} value={tam}>{tam}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Button 
-                onClick={handleAddTamanho} 
-                disabled={!newTamanho}
-                variant="contained"
-                size="large"
-                sx={{ px: 3 }}
-              >
-                Adicionar
-              </Button>
+                  Adicionar
+                </Button>
+              </Box>
             </Box>
-          </Box>
+          )}
+
+          {/* Informativo para categoria Bolsas */}
+          {formData.categoria === 'Bolsas' && (
+            <Box sx={{ mb: 4, p: 2, backgroundColor: 'info.50', borderRadius: 2, border: '1px solid', borderColor: 'info.200' }}>
+              <Typography variant="body2" color="info.main" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                ℹ️ Produtos da categoria "Bolsas" não precisam de especificação de tamanho
+              </Typography>
+            </Box>
+          )}
 
           {/* Tags */}
           <Box sx={{ mb: 4 }}>
@@ -420,6 +564,16 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
               📸 Imagens do Produto
             </Typography>
+
+            {/* Progresso do upload */}
+            {uploadingImages && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Enviando imagens... {Math.round(uploadProgress)}%
+                </Typography>
+                <LinearProgress variant="determinate" value={uploadProgress} />
+              </Box>
+            )}
             
             {formData.imagens.length > 0 && (
               <Box sx={{ 
@@ -441,13 +595,14 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                     boxShadow: 2
                   }}>
                     <img
-                      src={img}
+                      src={img.startsWith('http') ? img : `http://localhost:5006${img}`}
                       alt={`Produto ${index + 1}`}
                       style={{
                         width: 120,
                         height: 120,
-                        objectFit: 'cover',
-                        display: 'block'
+                        objectFit: 'contain',
+                        display: 'block',
+                        backgroundColor: '#f9f9f9'
                       }}
                     />
                     <Button
@@ -478,34 +633,40 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
             <Box sx={{
               p: 3,
-              backgroundColor: 'info.50',
+              backgroundColor: uploadingImages ? 'grey.100' : 'info.50',
               borderRadius: 2,
               border: '2px dashed',
-              borderColor: 'info.main',
+              borderColor: uploadingImages ? 'grey.400' : 'info.main',
               textAlign: 'center'
             }}>
-              <CloudUpload sx={{ fontSize: 48, color: 'info.main', mb: 2 }} />
+              <CloudUpload sx={{ 
+                fontSize: 48, 
+                color: uploadingImages ? 'grey.400' : 'info.main', 
+                mb: 2 
+              }} />
               <Typography variant="body1" gutterBottom>
-                Adicione imagens do produto
+                {uploadingImages ? 'Enviando imagens...' : 'Adicione imagens do produto'}
               </Typography>
               <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
-                Aceita múltiplas imagens • JPG, PNG, GIF • Máx: 5MB cada
+                Aceita múltiplas imagens • JPG, PNG, GIF, WEBP • Máx: 5MB cada
               </Typography>
               <Button
                 component="label"
                 variant="contained"
                 color="info"
-                startIcon={<CloudUpload />}
+                startIcon={uploadingImages ? <CircularProgress size={20} color="inherit" /> : <CloudUpload />}
                 size="large"
                 sx={{ px: 4 }}
+                disabled={uploadingImages}
               >
-                Selecionar Imagens
+                {uploadingImages ? 'Enviando...' : 'Selecionar Imagens'}
                 <input
                   type="file"
                   multiple
                   accept="image/*"
                   hidden
                   onChange={handleImageUpload}
+                  disabled={uploadingImages}
                 />
               </Button>
             </Box>
@@ -527,6 +688,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             onClick={onCancel}
             startIcon={<Cancel />}
             size="large"
+            disabled={uploadingImages}
             sx={{ 
               px: 4,
               py: 1.5,
@@ -545,6 +707,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             variant="contained"
             startIcon={<Save />}
             size="large"
+            disabled={uploadingImages}
             sx={{ 
               px: 4,
               py: 1.5,
@@ -558,7 +721,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
               transition: 'all 0.2s'
             }}
           >
-            {product ? '💾 Atualizar Produto' : '✨ Salvar Produto'}
+            {produto ? '💾 Atualizar Produto' : '✨ Salvar Produto'}
           </Button>
         </Box>
       </form>

@@ -20,7 +20,7 @@ import { ExpandMore, FilterList, Clear } from '@mui/icons-material'
 const ProductFilters = ({ onFiltersChange, products = [] }) => {
   const [filters, setFilters] = useState({
     search: '',
-    priceRange: [0, 300],
+    priceRange: [0, 2000],
     sizes: [],
     sortBy: 'name',
     isNew: false,
@@ -54,7 +54,7 @@ const ProductFilters = ({ onFiltersChange, products = [] }) => {
   const clearFilters = () => {
     const defaultFilters = {
       search: '',
-      priceRange: [0, 300],
+      priceRange: [0, 2000],
       sizes: [],
       sortBy: 'name',
       isNew: false,
@@ -144,7 +144,7 @@ const ProductFilters = ({ onFiltersChange, products = [] }) => {
                   valueLabelDisplay="auto"
                   valueLabelFormat={formatPrice}
                   min={0}
-                  max={300}
+                  max={2000}
                   step={10}
                   color="primary"
                 />

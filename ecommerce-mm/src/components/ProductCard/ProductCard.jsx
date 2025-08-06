@@ -57,13 +57,30 @@ const ProductCard = ({ product }) => {
       }}
     >
       <Box sx={{ position: 'relative' }}>
-        <CardMedia
-          component="img"
-          height="250"
-          image={product.image}
-          alt={product.name}
-          sx={{ objectFit: 'cover' }}
-        />
+        {product.image && product.image.trim() !== '' ? (
+          <CardMedia
+            component="img"
+            height="250"
+            image={product.image}
+            alt={product.name}
+            sx={{ 
+              objectFit: 'contain',
+              backgroundColor: 'grey.50'
+            }}
+          />
+        ) : (
+          <Box sx={{
+            height: 250,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'grey.100',
+            color: 'grey.400',
+            fontSize: 32
+          }}>
+            Sem imagem
+          </Box>
+        )}
         <IconButton
           onClick={toggleFavorite}
           sx={{
@@ -77,17 +94,35 @@ const ProductCard = ({ product }) => {
           {isFavorite ? <Favorite color="error" /> : <FavoriteBorder />}
         </IconButton>
         
-        {(product.isNew || product.featured) && (
-          <Chip
-            label={product.isNew ? "Novo" : "Destaque"}
-            color="primary"
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 8,
-              left: 8,
-            }}
-          />
+        {(product.isNew || product.featured || product.originalPrice) && (
+          <Box sx={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            {product.isNew && (
+              <Chip
+                label="Novo"
+                color="primary"
+                size="small"
+              />
+            )}
+            {product.featured && (
+              <Chip
+                label="Destaque"
+                color="secondary"
+                size="small"
+              />
+            )}
+            {product.originalPrice && (
+              <Chip
+                label="Promoção"
+                color="error"
+                size="small"
+                sx={{ 
+                  backgroundColor: '#ff4444',
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}
+              />
+            )}
+          </Box>
         )}
       </Box>
       
@@ -104,16 +139,30 @@ const ProductCard = ({ product }) => {
             {typeof product.price === 'number' ? formatCurrency(product.price) : `R$ ${product.price}`}
           </Typography>
           {product.originalPrice && (
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                ml: 1, 
-                textDecoration: 'line-through',
-                color: 'text.secondary'
-              }}
-            >
-              {typeof product.originalPrice === 'number' ? formatCurrency(product.originalPrice) : `R$ ${product.originalPrice}`}
-            </Typography>
+            <>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  ml: 1, 
+                  textDecoration: 'line-through',
+                  color: 'text.secondary'
+                }}
+              >
+                {typeof product.originalPrice === 'number' ? formatCurrency(product.originalPrice) : `R$ ${product.originalPrice}`}
+              </Typography>
+              <Chip
+                label={`-${Math.round((1 - (parseFloat(product.price) / parseFloat(product.originalPrice))) * 100)}%`}
+                color="error"
+                size="small"
+                sx={{ 
+                  ml: 1,
+                  backgroundColor: '#ff4444',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '0.75rem'
+                }}
+              />
+            </>
           )}
         </Box>
 

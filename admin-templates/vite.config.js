@@ -7,7 +7,14 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    open: true
+    open: false,
+    hmr: {
+      port: 5174
+    },
+    watch: {
+      usePolling: false,
+      interval: 1000
+    }
   },
   build: {
     outDir: 'dist',

@@ -12,23 +12,31 @@ import {
   Avatar,
   Fade,
   InputAdornment,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material'
-import { Lock, Visibility, VisibilityOff, AdminPanelSettings } from '@mui/icons-material'
+import { Lock, Visibility, VisibilityOff, AdminPanelSettings, Person } from '@mui/icons-material'
+import { authService } from './src/services/authService'
 
 const Login = ({ onLogin }) => {
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
+    setError('')
     
-    if (password === 'admin123') {
-      setError('')
+    try {
+      await authService.login({ username, password })
       onLogin()
-    } else {
-      setError('Senha incorreta. Use: admin123')
+    } catch (error) {
+      setError('Usuário ou senha incorretos')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -87,8 +95,27 @@ const Login = ({ onLogin }) => {
               <Box component="form" onSubmit={handleSubmit}>
                 <TextField
                   fullWidth
+                  type="text"
+                  label="Usuário"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Person color="primary" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  placeholder="Digite seu usuário"
+                  required
+                />
+
+                <TextField
+                  fullWidth
                   type={showPassword ? 'text' : 'password'}
-                  label="Senha de Administrador"
+                  label="Senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   variant="outlined"
@@ -110,7 +137,8 @@ const Login = ({ onLogin }) => {
                       </InputAdornment>
                     ),
                   }}
-                  placeholder="Digite admin123"
+                  placeholder="Digite sua senha"
+                  required
                 />
 
                 <Button
@@ -118,6 +146,7 @@ const Login = ({ onLogin }) => {
                   fullWidth
                   variant="contained"
                   size="large"
+                  disabled={loading}
                   sx={{ 
                     py: 1.5,
                     fontSize: '1.1rem',
@@ -130,13 +159,22 @@ const Login = ({ onLogin }) => {
                     }
                   }}
                 >
-                  Entrar no Sistema
+                  {loading ? (
+                    <>
+                      <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                      Entrando...
+                    </>
+                  ) : (
+                    'Entrar no Sistema'
+                  )}
                 </Button>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
-                💡 Dica: A senha padrão é <strong>admin123</strong>
-              </Typography>
+              {!loading && (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
+                  💡 Use suas credenciais de administrador
+                </Typography>
+              )}
             </CardContent>
           </Card>
         </Fade>

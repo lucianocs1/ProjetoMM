@@ -1,20 +1,32 @@
 import { useState, useMemo } from 'react'
-import { Container, Typography, Grid, Box, Chip } from '@mui/material'
+import { Container, Typography, Grid, Box, Chip, CircularProgress, Alert } from '@mui/material'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import ProductFilters from '../../components/ProductFilters/ProductFilters'
-import { sapatosData } from '../../data/products'
+import { useProducts } from '../../hooks/useProducts'
 
 const Sapatos = () => {
+  const { products: allProducts, loading, error } = useProducts()
+  // Filtrar sapatos no frontend
+  const products = useMemo(() =>
+    allProducts.filter(p => {
+      const cat = (p.category || p.Category || p.categoria || '').toString().trim().toLowerCase()
+      const slug = (p.slug || p.Slug || '').toString().trim().toLowerCase()
+      const categoryId = Number(p.categoryId || p.CategoryId || p.categoriaId)
+      return cat === 'sapatos' || slug === 'sapatos' || categoryId === 4
+    }),
+    [allProducts]
+  )
+  
   const [filters, setFilters] = useState({
     search: '',
-    priceRange: [0, 300],
+    priceRange: [0, 2000],
     sizes: [],
     sortBy: 'name',
     isNew: false,
   })
 
   const filteredProducts = useMemo(() => {
-    let filtered = [...sapatosData]
+    let filtered = [...products]
 
     // Filtro de busca
     if (filters.search) {
@@ -26,7 +38,7 @@ const Sapatos = () => {
 
     // Filtro de preço
     filtered = filtered.filter(product => {
-      const price = parseFloat(product.price.replace(',', '.'))
+      const price = parseFloat(product.price?.toString().replace(',', '.') || product.actualPrice || 0)
       return price >= filters.priceRange[0] && price <= filters.priceRange[1]
     })
 
@@ -46,9 +58,13 @@ const Sapatos = () => {
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'price_asc':
-          return parseFloat(a.price.replace(',', '.')) - parseFloat(b.price.replace(',', '.'))
+          const priceA = parseFloat(a.price?.toString().replace(',', '.') || a.actualPrice || 0)
+          const priceB = parseFloat(b.price?.toString().replace(',', '.') || b.actualPrice || 0)
+          return priceA - priceB
         case 'price_desc':
-          return parseFloat(b.price.replace(',', '.')) - parseFloat(a.price.replace(',', '.'))
+          const priceDescA = parseFloat(a.price?.toString().replace(',', '.') || a.actualPrice || 0)
+          const priceDescB = parseFloat(b.price?.toString().replace(',', '.') || b.actualPrice || 0)
+          return priceDescB - priceDescA
         case 'newest':
           return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0)
         default:
@@ -57,7 +73,7 @@ const Sapatos = () => {
     })
 
     return filtered
-  }, [filters])
+  }, [products, filters])
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -74,7 +90,7 @@ const Sapatos = () => {
       {/* Filtros */}
       <ProductFilters 
         onFiltersChange={setFilters} 
-        products={sapatosData}
+        products={products}
       />
 
       {/* Resultados */}
@@ -87,7 +103,15 @@ const Sapatos = () => {
       </Box>
 
       {/* Products Grid */}
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          Erro ao carregar produtos: {error}
+        </Alert>
+      ) : filteredProducts.length > 0 ? (
         <Grid container spacing={4}>
           {filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>

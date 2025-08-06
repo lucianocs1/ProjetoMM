@@ -18,9 +18,9 @@ const Carousel = ({ images = [], autoPlay = true, autoPlayDelay = 5000 }) => {
       subtitle: 'Estilo e conforto para o seu dia'
     },
     {
-      url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=500&fit=crop&crop=center',
-      title: 'Bolsas da Temporada',
-      subtitle: 'Complete seu look com elegância'
+      url: 'https://plus.unsplash.com/premium_photo-1713820011342-e14587b2968d?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      title: 'Bolsas Exclusivas',
+      subtitle: 'Sofisticação e praticidade em cada detalhe'
     }
   ]
 

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - EcommerceMM (Novo)</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .featured {
+            background-color: #fff3cd;
+            font-weight: bold;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-featured {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .status-normal {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        function NewAdminPanel() {
+            const [products, setProducts] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            
+            useEffect(() => {
+                loadProducts();
+            }, []);
+            
+            const loadProducts = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    
+                    console.log('🔍 Carregando produtos da API...');
+                    const response = await fetch('http://localhost:5006/api/products');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('📦 Dados recebidos:', data);
+                    
+                    if (Array.isArray(data)) {
+                        console.log('✅ API retornou array de produtos:', data.length);
+                        setProducts(data);
+                    } else {
+                        console.error('❌ API não retornou array:', typeof data);
+                        setError('Formato de dados inválido da API');
+                    }
+                    
+                } catch (err) {
+                    console.error('❌ Erro ao carregar produtos:', err);
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const toggleFeatured = async (productId, currentStatus) => {
+                try {
+                    console.log(`🔄 Alterando status featured do produto ${productId}: ${!currentStatus}`);
+                    
+                    const response = await fetch(`http://localhost:5006/api/products/${productId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            isFeatured: !currentStatus
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    console.log('✅ Status alterado com sucesso');
+                    // Recarregar produtos
+                    await loadProducts();
+                    
+                } catch (err) {
+                    console.error('❌ Erro ao alterar status:', err);
+                    alert('Erro ao alterar status: ' + err.message);
+                }
+            };
+            
+            if (loading) {
+                return (
+                    <div className="container">
+                        <h1>Admin Panel - EcommerceMM</h1>
+                        <p>⏳ Carregando produtos...</p>
+                    </div>
+                );
+            }
+            
+            if (error) {
+                return (
+                    <div className="container">
+                        <h1>Admin Panel - EcommerceMM</h1>
+                        <div style={{color: 'red', padding: '10px', background: '#ffe6e6', borderRadius: '4px'}}>
+                            ❌ Erro: {error}
+                        </div>
+                        <button className="btn btn-primary" onClick={loadProducts} style={{marginTop: '10px'}}>
+                            🔄 Tentar Novamente
+                        </button>
+                    </div>
+                );
+            }
+            
+            const featuredCount = products.filter(p => p.isFeatured).length;
+            
+            return (
+                <div className="container">
+                    <h1>Admin Panel - EcommerceMM</h1>
+                    
+                    <div style={{marginBottom: '20px', padding: '10px', background: '#e7f3ff', borderRadius: '4px'}}>
+                        📊 <strong>Resumo:</strong> {products.length} produtos total | 
+                        ⭐ {featuredCount} em destaque | 
+                        ⚪ {products.length - featuredCount} normais
+                    </div>
+                    
+                    <button className="btn btn-primary" onClick={loadProducts}>
+                        🔄 Recarregar
+                    </button>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                <th>Preço</th>
+                                <th>Status</th>
+                                <th>Debug isFeatured</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {products.map(product => (
+                                <tr key={product.id} className={product.isFeatured ? 'featured' : ''}>
+                                    <td>{product.id}</td>
+                                    <td>{product.name}</td>
+                                    <td>{product.category}</td>
+                                    <td>R$ {product.price}</td>
+                                    <td>
+                                        <span className={`status-badge ${product.isFeatured ? 'status-featured' : 'status-normal'}`}>
+                                            {product.isFeatured ? '⭐ DESTAQUE' : '⚪ Normal'}
+                                        </span>
+                                    </td>
+                                    <td style={{fontSize: '12px', color: '#666'}}>
+                                        {String(product.isFeatured)} ({typeof product.isFeatured})
+                                    </td>
+                                    <td>
+                                        <button 
+                                            className={`btn ${product.isFeatured ? 'btn-warning' : 'btn-primary'}`}
+                                            onClick={() => toggleFeatured(product.id, product.isFeatured)}
+                                        >
+                                            {product.isFeatured ? '❌ Remover Destaque' : '⭐ Destacar'}
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<NewAdminPanel />, document.getElementById('root'));
+    </script>
+</body>
+</html>

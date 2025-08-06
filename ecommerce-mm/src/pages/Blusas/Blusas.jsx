@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react'
-import { Container, Typography, Grid, Box, Chip } from '@mui/material'
+import { Container, Typography, Grid, Box, Chip, CircularProgress, Alert } from '@mui/material'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import ProductFilters from '../../components/ProductFilters/ProductFilters'
-import { blusasData } from '../../data/products'
+import { useProducts } from '../../hooks/useProducts'
 
 const Blusas = () => {
+  const { products, loading, error } = useProducts('Blusas')
+  
   const [filters, setFilters] = useState({
     search: '',
     priceRange: [0, 300],
@@ -14,7 +16,7 @@ const Blusas = () => {
   })
 
   const filteredProducts = useMemo(() => {
-    let filtered = [...blusasData]
+    let filtered = [...products]
 
     // Filtro de busca
     if (filters.search) {
@@ -57,7 +59,7 @@ const Blusas = () => {
     })
 
     return filtered
-  }, [filters])
+  }, [products, filters])
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -87,7 +89,15 @@ const Blusas = () => {
       </Box>
 
       {/* Products Grid */}
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          Erro ao carregar produtos: {error}
+        </Alert>
+      ) : filteredProducts.length > 0 ? (
         <Grid container spacing={4}>
           {filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>

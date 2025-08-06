@@ -7,15 +7,19 @@ import {
   Card, 
   CardContent,
   CardMedia,
-  Chip
+  Chip,
+  CircularProgress,
+  Alert
 } from '@mui/material'
 import { LocalMall, TrendingUp, Favorite, Support } from '@mui/icons-material'
 import { Link } from 'react-router-dom'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import Carousel from '../../components/Carousel/Carousel'
-import { featuredProducts } from '../../data/products'
+import { useFeaturedProducts } from '../../hooks/useProducts'
 
-const Home = () => {
+export default function Home() {
+  const { products: featuredProducts, loading, error } = useFeaturedProducts()
+  
   const categories = [
     {
       name: 'Roupas',
@@ -140,13 +144,31 @@ const Home = () => {
             </Typography>
           </Box>
           
-          <Grid container spacing={4}>
-            {featuredProducts.map((product) => (
-              <Grid item xs={12} sm={6} md={3} key={product.id}>
-                <ProductCard product={product} />
-              </Grid>
-            ))}
-          </Grid>
+          {loading ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
+              <CircularProgress sx={{ mb: 2 }} />
+              <Typography variant="body2" color="text.secondary">
+                Carregando produtos...
+              </Typography>
+            </Box>
+          ) : featuredProducts.length === 0 ? (
+            <Alert severity="info" sx={{ mb: 4 }}>
+              <Typography variant="body2">
+                <strong>Nenhum produto encontrado.</strong>
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
+                Adicione produtos através do painel admin em localhost:5173
+              </Typography>
+            </Alert>
+          ) : (
+            <Grid container spacing={4}>
+              {featuredProducts.map((product) => (
+                <Grid key={product.id}>
+                  <ProductCard product={product} />
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Container>
       </Box>
 
@@ -156,90 +178,84 @@ const Home = () => {
           Por Que Escolher a MENINA MULHER?
         </Typography>
         
-        <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ 
-              textAlign: 'center', 
-              p: 3,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-start'
-            }}>
-              <TrendingUp sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom sx={{ minHeight: '2.5rem', display: 'flex', alignItems: 'center' }}>
-                Últimas Tendências
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                Sempre atualizadas com as últimas tendências da moda
-              </Typography>
-            </Box>
-          </Grid>
+        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', flexWrap: 'nowrap', gap: 2 }}>
+          <Box sx={{ 
+            textAlign: 'center', 
+            flex: 1,
+            p: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            minWidth: 0
+          }}>
+            <TrendingUp sx={{ fontSize: 50, color: 'primary.main', mb: 1.5 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1.5, fontSize: '1rem', lineHeight: 1.2 }}>
+              Últimas Tendências
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: '0.875rem', lineHeight: 1.4 }}>
+              Sempre atualizadas com as últimas tendências da moda
+            </Typography>
+          </Box>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ 
-              textAlign: 'center', 
-              p: 3,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-start'
-            }}>
-              <Favorite sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom sx={{ minHeight: '2.5rem', display: 'flex', alignItems: 'center' }}>
-                Qualidade Premium
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                Produtos selecionados com materiais de alta qualidade
-              </Typography>
-            </Box>
-          </Grid>
+          <Box sx={{ 
+            textAlign: 'center', 
+            flex: 1,
+            p: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            minWidth: 0
+          }}>
+            <Favorite sx={{ fontSize: 50, color: 'primary.main', mb: 1.5 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1.5, fontSize: '1rem', lineHeight: 1.2 }}>
+              Qualidade Premium
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: '0.875rem', lineHeight: 1.4 }}>
+              Produtos selecionados com materiais de alta qualidade
+            </Typography>
+          </Box>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ 
-              textAlign: 'center', 
-              p: 3,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-start'
-            }}>
-              <Support sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom sx={{ minHeight: '2.5rem', display: 'flex', alignItems: 'center' }}>
-                Atendimento Personalizado
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                Suporte dedicado via WhatsApp e Instagram
-              </Typography>
-            </Box>
-          </Grid>
+          <Box sx={{ 
+            textAlign: 'center', 
+            flex: 1,
+            p: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            minWidth: 0
+          }}>
+            <Support sx={{ fontSize: 50, color: 'primary.main', mb: 1.5 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1.5, fontSize: '1rem', lineHeight: 1.2 }}>
+              Atendimento Personalizado
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: '0.875rem', lineHeight: 1.4 }}>
+              Suporte dedicado via WhatsApp e Instagram
+            </Typography>
+          </Box>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ 
-              textAlign: 'center', 
-              p: 3,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-start'
-            }}>
-              <LocalMall sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom sx={{ minHeight: '2.5rem', display: 'flex', alignItems: 'center' }}>
-                Entrega Rápida
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                Enviamos para todo o Brasil com rapidez e segurança
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
+          <Box sx={{ 
+            textAlign: 'center', 
+            flex: 1,
+            p: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            minWidth: 0
+          }}>
+            <LocalMall sx={{ fontSize: 50, color: 'primary.main', mb: 1.5 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1.5, fontSize: '1rem', lineHeight: 1.2 }}>
+              Entrega Rápida
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: '0.875rem', lineHeight: 1.4 }}>
+              Enviamos para todo o Brasil com rapidez e segurança
+            </Typography>
+          </Box>
+        </Box>
       </Container>
     </Box>
   )
 }
-
-export default Home
