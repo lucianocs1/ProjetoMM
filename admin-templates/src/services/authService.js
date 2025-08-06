@@ -16,10 +16,30 @@ export const authService = {
         return response;
       }
 
-      throw new Error(response.message || 'Erro no login');
+      // Se success = false, tratar como erro de credenciais
+      if (response.success === false) {
+        throw new Error(response.message || 'Usuário ou senha inválidos');
+      }
+
+      // Mensagens de erro mais específicas baseadas na resposta da API
+      if (response.status === 401 || response.message?.includes('Unauthorized')) {
+        throw new Error('Usuário ou senha incorretos');
+      } else if (response.status === 403) {
+        throw new Error('Acesso negado. Permissão de administrador necessária');
+      } else if (response.status === 404) {
+        throw new Error('Usuário não encontrado');
+      } else if (response.status >= 500) {
+        throw new Error('Erro interno do servidor. Tente novamente');
+      }
+
+      throw new Error(response.message || 'Credenciais inválidas');
     } catch (error) {
-      // Remover fallback de desenvolvimento em produção
-      console.error('Erro de login:', error);
+      // Se for erro de rede, melhorar a mensagem
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('Erro de conexão com o servidor');
+      }
+      
+      // Passar o erro original se já tiver uma mensagem específica
       throw error;
     }
   },
@@ -37,7 +57,7 @@ export const authService = {
         });
       }
     } catch (error) {
-      console.warn('Erro no logout da API:', error);
+      // ...removido log...
     } finally {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_logged_in');
@@ -47,12 +67,14 @@ export const authService = {
 
   // Verificar se está autenticado
   isAuthenticated() {
-    return localStorage.getItem('admin_logged_in') === 'true';
+    const result = localStorage.getItem('admin_logged_in') === 'true';
+    return result;
   },
 
   // Obter token
   getToken() {
-    return localStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token');
+    return token;
   },
 
   // Renovar token
@@ -84,8 +106,12 @@ export const authService = {
   async verifyToken() {
     try {
       const token = this.getToken();
-      if (!token) return false;
+      if (!token) {
+        console.log('🚫 Nenhum token para verificar');
+        return false;
+      }
 
+      console.log('🔍 Verificando token no servidor...');
       const response = await apiRequest('/auth/verify', {
         method: 'GET',
         headers: {
@@ -93,9 +119,10 @@ export const authService = {
         }
       });
 
-      return response.success;
+      console.log('✅ Resposta da verificação:', response);
+      return response.Valid === true;
     } catch (error) {
-      console.warn('Token inválido:', error);
+      console.error('❌ Erro na verificação do token:', error);
       this.logout(); // Limpar dados inválidos
       return false;
     }

@@ -71,7 +71,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     const response = await fetch(url, config);
     return await handleApiResponse(response);
   } catch (error) {
-    console.error(`API Error - ${config.method} ${endpoint}:`, error);
+    // ...removido log...
     throw error;
   }
 };

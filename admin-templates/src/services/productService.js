@@ -24,7 +24,7 @@ export const productService = {
       // A API retorna diretamente um array, não um objeto com success/data
       return Array.isArray(response) ? response : (response.success ? response.data : response);
     } catch (error) {
-      console.error('Erro ao carregar produtos:', error);
+      // ...removido log...
       throw error;
     }
   },
@@ -35,7 +35,7 @@ export const productService = {
       const response = await apiRequest(`/products/${id}`);
       return response.success ? response.data : response;
     } catch (error) {
-      console.error('Erro ao carregar produto:', error);
+      // ...removido log...
       throw error;
     }
   },
@@ -54,7 +54,7 @@ export const productService = {
 
       return response.success ? response.data : response;
     } catch (error) {
-      console.error('Erro ao criar produto:', error);
+      // ...removido log...
       throw error;
     }
   },
@@ -73,7 +73,7 @@ export const productService = {
 
       return response.success ? response.data : response;
     } catch (error) {
-      console.error('Erro ao atualizar produto:', error);
+      // ...removido log...
       throw error;
     }
   },
@@ -88,7 +88,7 @@ export const productService = {
 
       return response.success;
     } catch (error) {
-      console.error('Erro ao deletar produto:', error);
+      // ...removido log...
       throw error;
     }
   },
@@ -99,7 +99,7 @@ export const productService = {
       const response = await apiRequest('/products/dashboard');
       return response.success ? response.data : response;
     } catch (error) {
-      console.warn('API não disponível, calculando do localStorage:', error);
+      // ...removido log...
       const products = this.getProductsFromLocalStorage();
       return {
         total: products.length,
@@ -118,7 +118,7 @@ export const productService = {
       }
       return response;
     } catch (error) {
-      console.warn('API de categorias não disponível, usando fallback:', error);
+      // ...removido log...
       // Fallback para categorias padrão
       return ['Blusas', 'Bolsas', 'Roupas', 'Sapatos'];
     }
