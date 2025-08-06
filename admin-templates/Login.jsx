@@ -31,6 +31,8 @@ const Login = ({ onLogin }) => {
     setError('')
     
     try {
+      // Pequeno delay para melhor UX (opcional)
+      await new Promise(resolve => setTimeout(resolve, 500))
       await authService.login({ username, password })
       onLogin()
     } catch (error) {
@@ -100,6 +102,7 @@ const Login = ({ onLogin }) => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   variant="outlined"
+                  disabled={loading}
                   sx={{ mb: 2 }}
                   InputProps={{
                     startAdornment: (
@@ -119,6 +122,7 @@ const Login = ({ onLogin }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   variant="outlined"
+                  disabled={loading}
                   sx={{ mb: 3 }}
                   InputProps={{
                     startAdornment: (
@@ -131,6 +135,7 @@ const Login = ({ onLogin }) => {
                         <IconButton
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
+                          disabled={loading}
                         >
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>

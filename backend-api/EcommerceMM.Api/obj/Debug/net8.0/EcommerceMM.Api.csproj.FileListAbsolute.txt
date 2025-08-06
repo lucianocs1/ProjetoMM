@@ -135,3 +135,8 @@ C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\obj\Debug\net8.
 C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\obj\Debug\net8.0\EcommerceMM.Api.dll
 C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\obj\Debug\net8.0\refint\EcommerceMM.Api.dll
 C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\obj\Debug\net8.0\EcommerceMM.Api.pdb
+C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\bin\Debug\net8.0\EcommerceMM.Api.deps.json
+C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\bin\Debug\net8.0\EcommerceMM.Api.runtimeconfig.json
+C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\bin\Debug\net8.0\EcommerceMM.Api.pdb
+C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\obj\Debug\net8.0\EcommerceMM.Api.genruntimeconfig.cache
+C:\Users\Luciano\Documents\ProjetoMM\backend-api\EcommerceMM.Api\obj\Debug\net8.0\ref\EcommerceMM.Api.dll

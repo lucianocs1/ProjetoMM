@@ -2,15 +2,15 @@ import { Box, Typography, IconButton, Container, Grid } from '@mui/material'
 import { Instagram, WhatsApp } from '@mui/icons-material'
 
 const Footer = () => {
-  const whatsappNumber = '5511999999999' // Substitua pelo número real
-  const instagramHandle = '@meninmulher' // Substitua pelo handle real
+  const whatsappNumber = '5532984033503' // Número atualizado da MENINA MULHER
+  const instagramHandle = '@meninamulher201' // Instagram oficial da loja
 
   const handleWhatsAppClick = () => {
     window.open(`https://wa.me/${whatsappNumber}?text=Olá! Tenho interesse em seus produtos.`, '_blank')
   }
 
   const handleInstagramClick = () => {
-    window.open(`https://instagram.com/${instagramHandle.replace('@', '')}`, '_blank')
+    window.open('https://www.instagram.com/meninamulher201/', '_blank')
   }
 
   return (

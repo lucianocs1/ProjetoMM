@@ -5,9 +5,10 @@ namespace EcommerceMM.Api.Services
     public interface IImageService
     {
         Task<string> SaveImageAsync(IFormFile file, string folder = "products");
-        Task<bool> DeleteImageAsync(string imagePath);
+        bool DeleteImage(string imagePath);
         bool IsValidImage(IFormFile file);
         string GetImageUrl(string imagePath);
+        (int width, int height) GetRecommendedDimensions();
     }
 
     public class ImageService : IImageService
@@ -16,6 +17,10 @@ namespace EcommerceMM.Api.Services
         private readonly IConfiguration _configuration;
         private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+        
+        // Dimensões recomendadas para produtos (quadrado para melhor padronização)
+        private const int RecommendedWidth = 400;
+        private const int RecommendedHeight = 400;
 
         public ImageService(IWebHostEnvironment environment, IConfiguration configuration)
         {
@@ -47,7 +52,7 @@ namespace EcommerceMM.Api.Services
             return $"/uploads/{folder}/{fileName}";
         }
 
-        public async Task<bool> DeleteImageAsync(string imagePath)
+        public bool DeleteImage(string imagePath)
         {
             try
             {
@@ -108,6 +113,11 @@ namespace EcommerceMM.Api.Services
             // Se é um caminho local, constrói a URL
             var baseUrl = _configuration["BaseUrl"] ?? "http://localhost:5000";
             return $"{baseUrl.TrimEnd('/')}{imagePath}";
+        }
+
+        public (int width, int height) GetRecommendedDimensions()
+        {
+            return (RecommendedWidth, RecommendedHeight);
         }
     }
 }

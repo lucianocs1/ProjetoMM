@@ -41,6 +41,7 @@ const theme = createTheme({
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [logoutLoading, setLogoutLoading] = useState(false)
 
   useEffect(() => {
     // Verificar se já está logado
@@ -55,9 +56,20 @@ function App() {
     setIsAuthenticated(true)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_logged_in')
-    setIsAuthenticated(false)
+  const handleLogout = async () => {
+    setLogoutLoading(true)
+    
+    try {
+      // Simular delay para mostrar loading (remover em produção se não necessário)
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      localStorage.removeItem('admin_logged_in')
+      setIsAuthenticated(false)
+    } catch (error) {
+      console.error('Erro durante logout:', error)
+    } finally {
+      setLogoutLoading(false)
+    }
   }
 
   return (
@@ -67,7 +79,7 @@ function App() {
         {!isAuthenticated ? (
           <Login onLogin={handleLogin} />
         ) : (
-          <ProductManager onLogout={handleLogout} />
+          <ProductManager onLogout={handleLogout} logoutLoading={logoutLoading} />
         )}
       </Box>
     </ThemeProvider>

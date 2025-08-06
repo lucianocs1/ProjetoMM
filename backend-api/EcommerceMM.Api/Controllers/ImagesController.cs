@@ -50,7 +50,7 @@ namespace EcommerceMM.Api.Controllers
         }
 
         [HttpDelete("{*imagePath}")]
-        public async Task<ActionResult> DeleteImage(string imagePath)
+        public ActionResult DeleteImage(string imagePath)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace EcommerceMM.Api.Controllers
                 // Decodificar o caminho se necessário
                 imagePath = Uri.UnescapeDataString(imagePath);
 
-                var deleted = await _imageService.DeleteImageAsync(imagePath);
+                var deleted = _imageService.DeleteImage(imagePath);
 
                 if (deleted)
                     return Ok(new { message = "Imagem excluída com sucesso" });

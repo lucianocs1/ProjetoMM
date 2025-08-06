@@ -25,8 +25,33 @@ const formatCurrency = (value) => {
 const ProductCard = ({ product }) => {
   const [isFavorite, setIsFavorite] = useState(false)
   
-  const whatsappNumber = '5511999999999' // Substitua pelo número real
-  const instagramHandle = '@modafem' // Substitua pelo handle real
+  const whatsappNumber = '5532984033503' // Número atualizado da MENINA MULHER
+  const instagramHandle = '@meninamulher201' // Instagram oficial da loja
+
+  // Função para determinar o melhor objectFit baseado na categoria ou nome do produto
+  const getImageFit = () => {
+    const productName = product.name?.toLowerCase() || ''
+    const category = product.category?.toLowerCase() || ''
+    
+    // Para vestidos e roupas longas, usar contain para mostrar a peça completa
+    if (productName.includes('vestido') || 
+        productName.includes('dress') || 
+        category.includes('vestido') ||
+        category.includes('dress')) {
+      return 'contain'
+    }
+    
+    // Para bolsas e sapatos, cover funciona melhor
+    if (category.includes('bolsa') || 
+        category.includes('sapato') || 
+        category.includes('bag') || 
+        category.includes('shoe')) {
+      return 'cover'
+    }
+    
+    // Padrão: contain para preservar a proporção
+    return 'contain'
+  }
 
   const handleWhatsAppClick = () => {
     const price = typeof product.price === 'number' ? formatCurrency(product.price) : `R$ ${product.price}`
@@ -35,7 +60,7 @@ const ProductCard = ({ product }) => {
   }
 
   const handleInstagramClick = () => {
-    window.open(`https://instagram.com/${instagramHandle.replace('@', '')}`, '_blank')
+    window.open('https://www.instagram.com/meninamulher201/', '_blank')
   }
 
   const toggleFavorite = () => {
@@ -60,23 +85,29 @@ const ProductCard = ({ product }) => {
         {product.image && product.image.trim() !== '' ? (
           <CardMedia
             component="img"
-            height="250"
+            height="160"
             image={product.image}
             alt={product.name}
             sx={{ 
-              objectFit: 'contain',
-              backgroundColor: 'grey.50'
+              objectFit: getImageFit(),
+              objectPosition: 'center',
+              backgroundColor: 'grey.50',
+              width: '100%',
+              borderRadius: '4px 4px 0 0',
+              padding: getImageFit() === 'contain' ? '8px' : '0px'
             }}
           />
         ) : (
           <Box sx={{
-            height: 250,
+            height: 160,
+            width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: 'grey.100',
             color: 'grey.400',
-            fontSize: 32
+            fontSize: 20,
+            borderRadius: '4px 4px 0 0'
           }}>
             Sem imagem
           </Box>
@@ -126,15 +157,15 @@ const ProductCard = ({ product }) => {
         )}
       </Box>
       
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Typography gutterBottom variant="h6" component="div" sx={{ fontSize: '1.1rem' }}>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 1.5 }}>
+        <Typography gutterBottom variant="h6" component="div" sx={{ fontSize: '0.95rem', mb: 0.5 }}>
           {product.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, flexGrow: 1, fontSize: '0.8rem' }}>
           {product.description}
         </Typography>
         
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
             {typeof product.price === 'number' ? formatCurrency(product.price) : `R$ ${product.price}`}
           </Typography>
@@ -166,7 +197,7 @@ const ProductCard = ({ product }) => {
           )}
         </Box>
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.75rem' }}>
           Tamanhos disponíveis: {product.sizes?.join(', ')}
         </Typography>
         
@@ -175,7 +206,8 @@ const ProductCard = ({ product }) => {
             variant="contained"
             startIcon={<WhatsApp />}
             onClick={handleWhatsAppClick}
-            sx={{ flex: 1 }}
+            sx={{ flex: 1, fontSize: '0.7rem', py: 0.25, px: 1 }}
+            size="small"
           >
             WhatsApp
           </Button>
@@ -183,7 +215,8 @@ const ProductCard = ({ product }) => {
             variant="outlined"
             startIcon={<Instagram />}
             onClick={handleInstagramClick}
-            sx={{ flex: 1 }}
+            sx={{ flex: 1, fontSize: '0.7rem', py: 0.25, px: 1 }}
+            size="small"
           >
             Instagram
           </Button>

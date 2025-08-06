@@ -518,7 +518,8 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                     style={{
                       width: '100%',
                       height: '200px',
-                      objectFit: 'contain',
+                      objectFit: 'cover',
+                      objectPosition: 'center',
                       borderRadius: '8px',
                       border: '1px solid #ddd',
                       backgroundColor: '#f9f9f9'
@@ -565,8 +566,14 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             <Typography variant="body1" gutterBottom>
               {uploadingImages ? 'Enviando imagem...' : 'Adicione uma imagem do produto'}
             </Typography>
-            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
               Uma imagem apenas • JPG, PNG, GIF, WEBP • Máx: 5MB
+            </Typography>
+            <Typography variant="caption" color="primary.main" display="block" sx={{ mb: 1, fontWeight: 'bold' }}>
+              📐 Dimensões recomendadas: 400x400px (quadrada) para melhor padronização
+            </Typography>
+            <Typography variant="caption" color="success.main" display="block" sx={{ mb: 2, fontStyle: 'italic' }}>
+              💡 Dica: Vestidos ficam melhor em fotos completas, bolsas e sapatos podem ser close-up
             </Typography>
             <Button
               component="label"

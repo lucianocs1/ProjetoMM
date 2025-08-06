@@ -17,7 +17,8 @@ import {
   Paper,
   Badge,
   Fade,
-  Zoom
+  Zoom,
+  CircularProgress
 } from '@mui/material'
 import { 
   Logout, 
@@ -34,7 +35,7 @@ import ProductList from './ProductList'
 import { productService } from './src/services/productService.js'
 import { API_CONFIG } from './src/services/apiConfig.js'
 
-const ProductManager = ({ onLogout }) => {
+const ProductManager = ({ onLogout, logoutLoading }) => {
   const [products, setProducts] = useState([])
   const [filteredProducts, setFilteredProducts] = useState([])
   const [showForm, setShowForm] = useState(false)
@@ -388,14 +389,15 @@ const ProductManager = ({ onLogout }) => {
           <Button
             color="inherit"
             onClick={onLogout}
-            startIcon={<Logout />}
+            disabled={logoutLoading}
+            startIcon={logoutLoading ? <CircularProgress size={16} color="inherit" /> : <Logout />}
             sx={{ 
               borderRadius: 2,
               backgroundColor: 'rgba(255,255,255,0.1)',
               '&:hover': { backgroundColor: 'rgba(255,255,255,0.2)' }
             }}
           >
-            Sair
+            {logoutLoading ? 'Saindo...' : 'Sair'}
           </Button>
         </Toolbar>
       </AppBar>
