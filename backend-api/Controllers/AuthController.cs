@@ -4,11 +4,14 @@ using EcommerceMM.Api.Data;
 using EcommerceMM.Api.DTOs;
 using EcommerceMM.Api.Models;
 using EcommerceMM.Api.Services;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
 
 namespace EcommerceMM.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("AuthPolicy")]
     public class AuthController : ControllerBase
     {
         private readonly EcommerceDbContext _context;
@@ -27,11 +30,38 @@ namespace EcommerceMM.Api.Controllers
         {
             try
             {
+                // Validação básica
+                if (string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
+                {
+                    return BadRequest(new LoginResponseDto
+                    {
+                        Success = false,
+                        Message = "Username e password são obrigatórios"
+                    });
+                }
+
+                // Buscar admin
                 var admin = await _context.Admins
                     .FirstOrDefaultAsync(a => a.Username == loginDto.Username && a.IsActive);
 
-                if (admin == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, admin.PasswordHash))
+                if (admin == null)
                 {
+                    // Delay para mitigar ataques de force brute
+                    await Task.Delay(1000);
+                    return Ok(new LoginResponseDto
+                    {
+                        Success = false,
+                        Message = "Usuário ou senha inválidos"
+                    });
+                }
+
+                if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, admin.PasswordHash))
+                {
+                    // Log de tentativa de login inválida
+                    _logger.LogWarning("Invalid login attempt for user: {Username} from IP: {IP}", 
+                        loginDto.Username, HttpContext.Connection.RemoteIpAddress);
+                    
+                    await Task.Delay(1000);
                     return Ok(new LoginResponseDto
                     {
                         Success = false,
@@ -44,6 +74,8 @@ namespace EcommerceMM.Api.Controllers
                 await _context.SaveChangesAsync();
 
                 var token = _jwtService.GenerateToken(admin);
+
+                _logger.LogInformation("Successful login for user: {Username}", admin.Username);
 
                 return Ok(new LoginResponseDto
                 {

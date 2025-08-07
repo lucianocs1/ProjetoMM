@@ -6,6 +6,7 @@ using EcommerceMM.Api.Models;
 using EcommerceMM.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Globalization;
+using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceMM.Api.Controllers
 {
@@ -171,7 +172,7 @@ namespace EcommerceMM.Api.Controllers
         }
 
         [HttpPost]
-        // [Authorize] // Temporariamente removido para teste
+        [Authorize]
         public async Task<ActionResult<ProductDto>> CreateProduct([FromBody] CreateProductDto createProductDto)
         {
             try
@@ -240,7 +241,7 @@ namespace EcommerceMM.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        // [Authorize] // Temporariamente removido para teste
+        [Authorize]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updateProductDto)
         {
             try
@@ -296,7 +297,7 @@ namespace EcommerceMM.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        // [Authorize] // Temporariamente removido para teste
+        [Authorize]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             try

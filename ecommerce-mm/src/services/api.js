@@ -1,25 +1,43 @@
-// Configuração da API para integração com .NET Backend
+// Configuração da API para produção web
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5006/api'
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 15000
+const IS_PRODUCTION = import.meta.env.VITE_NODE_ENV === 'production'
 
 const apiConfig = {
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
   }
 }
 
-// Função helper para fazer requests
+// Cache para requests em desenvolvimento
+const requestCache = new Map()
+const CACHE_DURATION = IS_PRODUCTION ? 0 : 5 * 60 * 1000 // 5 minutos em dev
+
+// Função helper para fazer requests com retry e cache
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${apiConfig.baseURL}${endpoint}`
+  const cacheKey = `${options.method || 'GET'}-${url}-${JSON.stringify(options.data || {})}`
+  
+  // Verificar cache apenas em desenvolvimento
+  if (!IS_PRODUCTION && options.method === 'GET') {
+    const cached = requestCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('🔄 Cache hit:', endpoint)
+      return cached.data
+    }
+  }
   
   const config = {
-    method: 'GET',
+    method: options.method || 'GET',
     headers: {
       ...apiConfig.headers,
       ...options.headers,
     },
+    signal: AbortSignal.timeout(apiConfig.timeout),
     ...options,
   }
 
@@ -28,34 +46,74 @@ const apiRequest = async (endpoint, options = {}) => {
   }
 
   try {
-    // Timeout mais curto para falha rápida
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    // Implementar retry logic para produção
+    let lastError
+    const maxRetries = IS_PRODUCTION ? 3 : 1
     
-    const response = await fetch(url, { 
-      ...config, 
-      signal: controller.signal 
-    })
-    
-    clearTimeout(timeoutId)
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), apiConfig.timeout)
+        
+        const response = await fetch(url, { 
+          ...config, 
+          signal: controller.signal 
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
 
-    const data = await response.json()
-    return { data, error: null }
+        const data = await response.json()
+        
+        // Cache apenas GET requests bem-sucedidas
+        if (!IS_PRODUCTION && config.method === 'GET') {
+          requestCache.set(cacheKey, {
+            data: { data, error: null },
+            timestamp: Date.now()
+          })
+        }
+        
+        return { data, error: null }
+        
+      } catch (error) {
+        lastError = error
+        
+        if (attempt < maxRetries) {
+          // Delay exponencial para retry
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
+          continue
+        }
+        
+        break
+      }
+    }
+    
+    // Tratamento de erro após todas as tentativas
+    if (lastError.message.includes('Failed to fetch') || 
+        lastError.name === 'TypeError' || 
+        lastError.name === 'AbortError') {
+      
+      if (!IS_PRODUCTION) {
+        console.log('⚠️ API indisponível, usando dados locais:', endpoint)
+      }
+      
+      return { data: null, error: 'API_UNAVAILABLE' }
+    }
+    
+    if (!IS_PRODUCTION) {
+      console.error('❌ Erro na requisição:', lastError.message)
+    }
+    
+    return { data: null, error: lastError.message }
     
   } catch (error) {
-    // Silenciar logs para erros esperados de backend indisponível
-    if (error.message.includes('Failed to fetch') || 
-        error.name === 'TypeError' || 
-        error.name === 'AbortError') {
-      return { data: null, error: 'Backend indisponível' }
+    if (!IS_PRODUCTION) {
+      console.error('❌ Erro inesperado:', error)
     }
-    
-    console.error('❌ Erro inesperado na requisição:', error.message)
-    return { data: null, error: error.message }
+    return { data: null, error: 'NETWORK_ERROR' }
   }
 }// Serviço para integração com a API do e-commerce
 class EcommerceApiService {

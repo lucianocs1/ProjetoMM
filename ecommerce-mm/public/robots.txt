@@ -1,0 +1,37 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.seudominio.com/sitemap.xml
+
+# Principais páginas para indexação
+Allow: /roupas
+Allow: /bolsas
+Allow: /sapatos
+Allow: /blusas
+
+# URLs específicas que não devem ser indexadas
+Disallow: /admin
+Disallow: /api
+Disallow: /*.json$
+Disallow: /*?*
+
+# Crawl-delay para evitar sobrecarga
+Crawl-delay: 1
+
+# User agents específicos
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Bloquear bots maliciosos conhecidos
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /

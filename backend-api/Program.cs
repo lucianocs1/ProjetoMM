@@ -5,11 +5,45 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using EcommerceMM.Api.Data;
 using EcommerceMM.Api.Services;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Rate Limiting para segurança
+builder.Services.AddRateLimiter(options =>
+{
+    // Rate limit global
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+    
+    // Rate limit específico para autenticação (mais restritivo)
+    options.AddPolicy("AuthPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(5)
+            }));
+    
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", token);
+    };
+});
 
 // Entity Framework
 builder.Services.AddDbContext<EcommerceDbContext>(options =>
@@ -39,17 +73,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// CORS
+// CORS com configurações mais restritivas para produção
+var allowedOrigins = builder.Configuration.GetSection("Security:AllowedOrigins").Get<string[]>() 
+    ?? new[] { "http://localhost:3000", "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:4173", "http://localhost:5006")
-            .AllowAnyMethod()
-            .AllowAnyHeader()
+            .WithOrigins(allowedOrigins)
+            .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .WithHeaders("Content-Type", "Authorization", "X-Requested-With")
             .AllowCredentials()
-            .WithExposedHeaders("X-Total-Count", "X-Page", "X-Page-Size", "Authorization", "X-Frame-Options");
+            .WithExposedHeaders("X-Total-Count", "X-Page", "X-Page-Size");
     });
 });
 
@@ -92,7 +129,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configurar pipeline de produção
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,27 +138,53 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "EcommerceMM API v1");
     });
 }
+else
+{
+    // Produção: configurações de segurança
+    app.UseHsts();
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+        context.Response.Headers.Add("X-Frame-Options", "DENY");
+        context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+        context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+        await next();
+    });
+}
 
-// Ensure database is created
+// Inicializar banco de dados com configurações de produção
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<EcommerceDbContext>();
-    context.Database.EnsureCreated();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     
-    // Ativar categoria Roupas se ela existir
-    var roupasCategory = context.Categories.FirstOrDefault(c => c.Id == 1);
-    if (roupasCategory != null && !roupasCategory.IsActive)
+    try
     {
-        roupasCategory.IsActive = true;
-        context.SaveChanges();
-        Console.WriteLine("Categoria Roupas ativada");
+        context.Database.EnsureCreated();
+        
+        // Ativar categoria Roupas se ela existir
+        var roupasCategory = context.Categories.FirstOrDefault(c => c.Id == 1);
+        if (roupasCategory != null && !roupasCategory.IsActive)
+        {
+            roupasCategory.IsActive = true;
+            context.SaveChanges();
+            logger.LogInformation("Categoria Roupas ativada");
+        }
+        
+        logger.LogInformation("Database initialized successfully");
     }
-    
-    Console.WriteLine("Database initialized");
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error occurred while initializing database");
+        throw;
+    }
 }
 
-// Comentado temporariamente para evitar problemas de CORS
+// Para produção local: HTTP apenas (para domínio seria HTTPS)
 // app.UseHttpsRedirection();
+
+// Rate limiting
+app.UseRateLimiter();
 
 // Servir arquivos estáticos (imagens)
 app.UseStaticFiles();

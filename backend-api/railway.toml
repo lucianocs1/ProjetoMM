@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "dotnet run --urls http://0.0.0.0:$PORT"
+
+[env]
+PORT = "8080"
+ASPNETCORE_ENVIRONMENT = "Production"
