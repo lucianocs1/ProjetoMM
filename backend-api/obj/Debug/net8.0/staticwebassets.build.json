@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Dl3b/J3RKR3kXtuCiSAsgz5E/LDLDWX30Rg+SY/jwEM=",
+  "Hash": "iEnZvzBZoaCZTzzsGR48GK+FDo014zYFuHH6GaXbE+Q=",
   "Source": "EcommerceMM.Api",
   "BasePath": "_content/EcommerceMM.Api",
   "Mode": "Default",
@@ -435,6 +435,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\products\\cde2bf04-0ba6-48d1-8b2a-0e43fa700b75.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\Luciano\\Documents\\ProjetoMM\\backend-api\\wwwroot\\uploads\\products\\d149ab44-05c4-4606-932f-fc533cce6ff3.jpg",
+      "SourceId": "EcommerceMM.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Luciano\\Documents\\ProjetoMM\\backend-api\\wwwroot\\",
+      "BasePath": "_content/EcommerceMM.Api",
+      "RelativePath": "uploads/products/d149ab44-05c4-4606-932f-fc533cce6ff3#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "94v7woggto",
+      "Integrity": "t+ZUnkj10jKb/WNJoG2YLAAEcEHXLNkoxFaUuXI5/VM=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\products\\d149ab44-05c4-4606-932f-fc533cce6ff3.jpg"
     },
     {
       "Identity": "C:\\Users\\Luciano\\Documents\\ProjetoMM\\backend-api\\wwwroot\\uploads\\products\\df12baf6-7015-4e3a-bf36-7f2d357a9456.jpeg",
@@ -2201,6 +2222,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-POOLVb8+IG2qyP3fTcwLPFqRZShT0maBA4LJpP+HtRY="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/d149ab44-05c4-4606-932f-fc533cce6ff3.94v7woggto.jpg",
+      "AssetFile": "C:\\Users\\Luciano\\Documents\\ProjetoMM\\backend-api\\wwwroot\\uploads\\products\\d149ab44-05c4-4606-932f-fc533cce6ff3.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "81233"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"t+ZUnkj10jKb/WNJoG2YLAAEcEHXLNkoxFaUuXI5/VM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 06 Aug 2025 22:33:43 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "94v7woggto"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/products/d149ab44-05c4-4606-932f-fc533cce6ff3.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-t+ZUnkj10jKb/WNJoG2YLAAEcEHXLNkoxFaUuXI5/VM="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/d149ab44-05c4-4606-932f-fc533cce6ff3.jpg",
+      "AssetFile": "C:\\Users\\Luciano\\Documents\\ProjetoMM\\backend-api\\wwwroot\\uploads\\products\\d149ab44-05c4-4606-932f-fc533cce6ff3.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "81233"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"t+ZUnkj10jKb/WNJoG2YLAAEcEHXLNkoxFaUuXI5/VM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 06 Aug 2025 22:33:43 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-t+ZUnkj10jKb/WNJoG2YLAAEcEHXLNkoxFaUuXI5/VM="
         }
       ]
     },

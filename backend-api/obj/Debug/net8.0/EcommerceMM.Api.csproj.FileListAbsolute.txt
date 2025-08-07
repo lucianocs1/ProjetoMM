@@ -140,3 +140,5 @@ C:\Users\Luciano\Documents\ProjetoMM\backend-api\obj\Debug\net8.0\refint\Ecommer
 C:\Users\Luciano\Documents\ProjetoMM\backend-api\obj\Debug\net8.0\EcommerceMM.Api.pdb
 C:\Users\Luciano\Documents\ProjetoMM\backend-api\obj\Debug\net8.0\EcommerceMM.Api.genruntimeconfig.cache
 C:\Users\Luciano\Documents\ProjetoMM\backend-api\obj\Debug\net8.0\ref\EcommerceMM.Api.dll
+C:\Users\Luciano\Documents\ProjetoMM\backend-api\bin\Debug\net8.0\appsettings.Production.json
+C:\Users\Luciano\Documents\ProjetoMM\backend-api\bin\Debug\net8.0\appsettings_New.json
