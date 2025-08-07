@@ -1,19 +1,8 @@
 {
-  "name": "ecommerce-mm-admin",
-  "version": "2",
-  "builds": [
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build"
+      "source": "/api/:path*",
+      "destination": "https://SUA-API-NA-RENDER.onrender.com/api/:path*"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install"
+  ]
 }
